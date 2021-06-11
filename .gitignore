@@ -1,0 +1,5 @@
+# Whitelist all directories
+!./
+# Whitelist by file extention
+!*.py
+!*.m
