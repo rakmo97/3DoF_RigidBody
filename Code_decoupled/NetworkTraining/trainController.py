@@ -58,7 +58,7 @@ TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(25, activation=activation,kernel_initializer='normal'))
-TF.add(layers.Dense(2, activation='linear',kernel_initializer='normal'))
+TF.add(layers.Dense(3, activation='linear',kernel_initializer='normal'))
 
 # Compile ANN
 opt = Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, amsgrad=True)
@@ -124,18 +124,24 @@ yvis = TF.predict(X_test[idxs].reshape(-1,7));
 
 
 plt.figure(3)
-plt.subplot(211)
+plt.subplot(311)
 plt.plot(t_test[idxs,0])
 plt.plot(yvis[:,0])
 plt.xlabel('Index (-)')
 plt.ylabel('Tx (N)')
 plt.legend(['ocl','ann'])
-plt.subplot(212)
+plt.subplot(312)
 plt.plot(t_test[idxs,1])
 plt.plot(yvis[:,1])
 plt.xlabel('Index (-)')
 plt.ylabel('Ty (N)')
+plt.subplot(313)
+plt.plot(t_test[idxs,2])
+plt.plot(yvis[:,2])
+plt.xlabel('Index (-)')
+plt.ylabel('M (N-m)')
 plt.tight_layout()
+
 
 # plt.figure(3)
 

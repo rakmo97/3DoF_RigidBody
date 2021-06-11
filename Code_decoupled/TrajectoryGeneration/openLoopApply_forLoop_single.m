@@ -7,19 +7,19 @@ clc
 trajToRun = 1;
 % Extract Profiles for Trajectory
 
-d = load('../NetworkTraining/ANN2_data.mat');
-idxs = ((trajToRun-1)*100+1):(((trajToRun-1)*100+1)+99);
-ctrlProfile = d.tfull_2(idxs,:);
-trajFromOCL= d.Xfull_2(idxs,:);
-trajFromOCL(:,1:6) = -trajFromOCL(:,1:6);
-times = d.times(idxs);
+% d = load('../NetworkTraining/ANN2_data.mat');
+% idxs = ((trajToRun-1)*100+1):(((trajToRun-1)*100+1)+99);
+% ctrlProfile = d.tfull_2(idxs,:);
+% trajFromOCL= d.Xfull_2(idxs,:);
+% trajFromOCL(:,1:6) = -trajFromOCL(:,1:6);
+% times = d.times(idxs);
 
 
-% d = load('ToOrigin_Trajectories/d20210512_15o18_genTrajs.mat');
-% % d = load('ToOrigin_Trajectories/d20210512_15o21_genTrajs.mat');
-% ctrlProfile = d.ctrlOut(:,:,trajToRun);
-% trajFromOCL = d.stateOut(:,2:8,trajToRun);
-% times = d.stateOut(:,1,trajToRun);
+d = load('ToOrigin_Trajectories/d20210611_12o24_genTrajs.mat');
+% d = load('ToOrigin_Trajectories/d20210512_15o21_genTrajs.mat');
+ctrlProfile = d.ctrlOut(:,:,trajToRun);
+trajFromOCL = d.stateOut(:,2:8,trajToRun);
+times = d.stateOut(:,1,trajToRun);
 
 maxStep = diff(times);
 maxStep = floor(log10(maxStep(1)));
@@ -36,8 +36,9 @@ for i = 1:length(times)-1
 
     Fx = ctrlProfile(i,1);
     Fy = ctrlProfile(i,2);
+    M  = ctrlProfile(i,3);
     options = odeset('MaxStep',maxStep);
-    [t,x] = ode45(@(t,x) dynamics_openloop(t,x,Fx,Fy), [times(i),times(i+1)], xout(i,:), options);
+    [t,x] = ode45(@(t,x) dynamics_openloop(t,x,Fx,Fy,M), [times(i),times(i+1)], xout(i,:), options);
     xout(i+1,:) = x(end,:);
     tout(i+1) = t(end);
     
@@ -105,21 +106,27 @@ ylabel('\dot{\phi} [rad/s]')
 figure;
 sgtitle('Controls')
 
-subplot(2,1,1)
+subplot(3,1,1)
 plot(times,ctrlProfile(:,1))
 hold on;
 plot(times,ctrlProfile(:,1),'--')
 legend('OpenOCL','Open Loop1','Open Loop2')
 ylabel('F_x [N]')
 
-subplot(2,1,2)
+subplot(3,1,2)
 plot(times,ctrlProfile(:,2))
 hold on;
 plot(times,ctrlProfile(:,2),'--')
 legend('OpenOCL','Open Loop1','Open Loop2')
 ylabel('F_y [N]')
 
-
+subplot(3,1,3)
+plot(times,ctrlProfile(:,2))
+hold on;
+plot(times,ctrlProfile(:,2),'--')
+legend('OpenOCL','Open Loop1','Open Loop2')
+ylabel('M [N-m]')
+xlabel('Time [s]')
 
 
 

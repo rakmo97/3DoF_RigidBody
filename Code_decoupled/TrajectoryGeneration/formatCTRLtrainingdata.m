@@ -42,7 +42,7 @@ end
 
 % Preallocate
 Xfull_2 = zeros(numdata,7);
-tfull_2 = zeros(numdata,2);
+tfull_2 = zeros(numdata,3);
 times = zeros(numdata,1);
 
 count = 1;
@@ -71,12 +71,12 @@ for i = 1:length(datafiles)
                 d.stateOut(k,8,j),...
                 ];
             
-            tfull_2(count,:) = [d.ctrlOut(k,1,j),d.ctrlOut(k,2,j)];
+            tfull_2(count,:) = [d.ctrlOut(k,1,j),d.ctrlOut(k,2,j),d.ctrlOut(k,3,j)];
             
             times(count) = d.stateOut(k,1,j);
             
             if(rem(count,100)==0)
-                tfull_2(count,:) = [0,0];
+                tfull_2(count,:) = [0,0,0];
             end
             
             count = count+1;
@@ -91,7 +91,7 @@ disp(['Full dataset size: ',num2str(count-1)])
 %% Separate into training and testing data
 disp('Separating training and testing data')
 
-num2train = 200000;
+num2train = 150000;
 Xtrain2 = Xfull_2(1:num2train,:);
 ttrain2 = tfull_2(1:num2train,:);
 Xtest2 = Xfull_2(num2train+1:end,:);

@@ -13,7 +13,7 @@ clc
 
 
 %% Generation settings
-nTrajs = 1; % Number of trajectories to generate
+nTrajs = 1000; % Number of trajectories to generate
 plotting = 0; % Plot things or no?
 saveout = ['d',datestr(now,'yyyymmdd_HHoMM'),'_genTrajs','.mat'];
 
@@ -31,7 +31,7 @@ surfFunctionOut = cell(nTrajs,1);
 objectiveOut = zeros(nTrajs,2);
 Jout = zeros(nTrajs,3);
 stateOut = zeros(N,8,nTrajs);
-ctrlOut = zeros(N,2,nTrajs);
+ctrlOut = zeros(N,3,nTrajs);
 runTimeOut = zeros(nTrajs,1);
 stateFinal = zeros(nTrajs,7);
 
@@ -80,8 +80,8 @@ for i = 1:nTrajs
 
             % Generate Initial Conditions and Target [x,y,phi,dx,dy,dphi,m]
             x0 = [0,0,0,-20,-1,0,500];
-%             r = lower+(upper-lower).*rand(6,1);
-            r = 1.0e+03*[1,1.3,0,0,0,0];
+            r = lower+(upper-lower).*rand(6,1);
+%             r = 1.0e+03*[1.1,1.3,0,0,0,0];
 %             r = [1000,1000,0];
             % Set Initial Conditions
             solver.setInitialBounds( 'x'   ,   r(1)   );
@@ -144,6 +144,7 @@ for i = 1:nTrajs
             % Pull out controls
             Fx = solution.controls.Fx.value;
             Fy = solution.controls.Fy.value;
+            M  = solution.controls.M.value;
 
 
             % Define indexes of states that align with control values
@@ -160,7 +161,7 @@ for i = 1:nTrajs
 
 
             % Calculate Costs
-            L_F = Fx.^2 + Fy.^2;
+            L_F = Fx.^2 + Fy.^2 + M.^2;
             J_F = trapz(tc,L_F);
         %     J_t = tc(end);
 
@@ -176,7 +177,7 @@ for i = 1:nTrajs
             % Save off outputs
             Jout(i,:) = [J_path,J_term,J_total];
             stateOut(:,:,i) = [tc',x',y',phi',dx',dy',dphi',m'];
-            ctrlOut(:,:,i) = [Fx',Fy'];
+            ctrlOut(:,:,i) = [Fx',Fy',M'];
             runTimeOut(i) = timeToRun;
             stateFinal(i,:) = [xa(end),ya(end),phia(end),dxa(end),dya(end),dphia(end),ma(end)];
             
@@ -199,16 +200,20 @@ for i = 1:nTrajs
 
                 % Plot thrust profiles
                 figure(2);
-                subplot(2,1,1)
+                subplot(3,1,1)
                 plot(tc,Fx,'g')
                 hold on
                 title('Controls')
                 ylabel('F_x [N]')
-                subplot(2,1,2)
+                subplot(3,1,2)
                 plot(tc,Fy,'b')
                 hold on
                 ylabel('F_y [N]')
-
+                subplot(3,1,3)
+                plot(tc,M,'b')
+                hold on
+                ylabel('M [N-m]')
+                xlabel('Time [s]')
 
                 figure(3);
                 subplot(2,2,1)
@@ -313,6 +318,7 @@ function landervarsfun(sh, c)
     % Define Controls
     sh.addControl('Fx', 'lb', -Fmax, 'ub', Fmax);  % Force [N]
     sh.addControl('Fy', 'lb', 0, 'ub', Fmax);  % Force [N]
+    sh.addControl('M' , 'lb', -Fmax, 'ub', Fmax);  % Force [N]
 
 
     % System Parameters
@@ -336,10 +342,10 @@ function landereqfun(sh,x,~,u,c) % https://charlestytler.com/quadcopter-equation
     sh.setODE( 'x'   , x.dx);
     sh.setODE( 'y'   , x.dy);
     sh.setODE( 'phi' , x.dphi);
-    sh.setODE( 'dx'  , (1/x.m)*(u.Fx*cos(x.phi) - u.Fy*sin(x.phi)));
-    sh.setODE( 'dy'  , (1/x.m)*(u.Fx*sin(x.phi) + u.Fy*cos(x.phi)) - c.g);
-    sh.setODE( 'dphi', (1/J)*(c.r*u.Fx));
-    sh.setODE( 'm'   , -sqrt((u.Fx)^2 + (u.Fy)^2) / (c.Isp*c.g0));
+    sh.setODE( 'dx'  , (1/x.m)*u.Fx);
+    sh.setODE( 'dy'  , (1/x.m)*u.Fy - c.g);
+    sh.setODE( 'dphi', (1/J)*u.M);
+    sh.setODE( 'm'   , -sqrt((u.Fx)^2 + (u.Fy)^2 + (u.M)^2) / (c.Isp*c.g0));
 
 
 end
@@ -347,9 +353,10 @@ end
 function landerpathcosts(ch,x,u,~)
     
     % Cost Function (thrust magnitude)
-%     ch.add(sqrt((u.Fx)^2 + (u.Fy)^2));
+%     ch.add(sqrt((u.Fx)^2 + (u.Fy)^2) + (u.M)^2);
     ch.add(u.Fx^2);
     ch.add(u.Fy^2);
+    ch.add(u.M^2 );
     % Time
 %     ch.add(1);
 
