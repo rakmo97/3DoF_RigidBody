@@ -1,5 +1,5 @@
-# Whitelist all directories
-!./
-# Whitelist by file extention
-!*.py
-!*.m
+*.mat
+*.h5
+*.txt
+*.png
+__pycache__/
