@@ -25,10 +25,7 @@ from keras.callbacks import EarlyStopping
 # Load in training and testing data
 print("Loading mat file")
 matfile = loadmat('ANN2_data.mat')
-# matfile = loadmat('ANN2_decoupled_data.mat')
 
-
-# matfile = loadmat('ANN1_data_notaug.mat')
 Xfull = matfile['Xfull_2']
 tfull = matfile['tfull_2']
 X_train = matfile['Xtrain2'].reshape(-1,7)
@@ -44,8 +41,8 @@ t_test = matfile['ttest2']
 activation = "relu"
 # activation = "tanh"
 
-# n_neurons = 750
-n_neurons = 50
+# n_neurons = 100
+n_neurons = 75
 
 
 # Define ANN Architecture
@@ -58,6 +55,7 @@ TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(25, activation=activation,kernel_initializer='normal'))
+# TF.add(layers.BatchNormalization())
 TF.add(layers.Dense(3, activation='linear',kernel_initializer='normal'))
 
 # Compile ANN

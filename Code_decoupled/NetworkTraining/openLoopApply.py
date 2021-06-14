@@ -54,7 +54,7 @@ x0 = trajFromOCL[0,:]
 
 n_times   =  len(times)
 nState    =  7
-nCtrl     =  2
+nCtrl     =  3
 
 
 t  = np.zeros(times.size)
@@ -73,9 +73,6 @@ x[0,:] = x0
 
 
 for i in range(n_times-1):
-    # print(i)
-    
-    controller_input = 
 
     Fi[i,:] = ctrlProfile[i,:]
 
@@ -164,16 +161,21 @@ plt.tight_layout()
 
 
 plt.figure(4)
-plt.subplot(211)
+plt.subplot(311)
 plt.plot(times,ctrlProfile[:,0])
 plt.plot(times,Fi[:,0],'--')
 plt.ylabel('Fx [N]')
 plt.legend(['OpenOCL','ANN'],loc='best')
 
-plt.subplot(212)
+plt.subplot(312)
 plt.plot(times,ctrlProfile[:,1])
 plt.plot(times,Fi[:,1],'--')
 plt.ylabel('Fy [N]')
+
+plt.subplot(313)
+plt.plot(times,ctrlProfile[:,2])
+plt.plot(times,Fi[:,2],'--')
+plt.ylabel('M [N-m]')
 
 
 

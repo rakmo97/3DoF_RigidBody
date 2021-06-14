@@ -28,20 +28,23 @@ print("Loading mat file")
 trajToRun = 0 # Indexing variable
 
 
-matfile = loadmat('ANN2_data.mat')
-idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
-ctrlProfile = matfile['tfull_2'][idxs,:]
-trajFromOCL = matfile['Xfull_2'][idxs,:]*np.array([-1,-1,-1,-1,-1,-1,1])
-times = matfile['times'][idxs,:]
+# matfile = loadmat('ANN2_data.mat')
+# idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
+# ctrlProfile = matfile['tfull_2'][idxs,:]
+# trajFromOCL = matfile['Xfull_2'][idxs,:]*np.array([-1,-1,-1,-1,-1,-1,1])
+# times = matfile['times'][idxs,:]
 
-# matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210512_15o18_genTrajs.mat')
-# # matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210512_15o21_genTrajs.mat')
-# ctrlProfile = matfile['ctrlOut'].reshape(100,2,-1)[:,:,trajToRun]
-# trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun]
-# times = matfile['stateOut'].reshape(100,8,-1)[:,0,trajToRun]
+matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210611_12o24_genTrajs.mat')
+# matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210512_15o21_genTrajs.mat')
+ctrlProfile = matfile['ctrlOut'].reshape(100,3,-1)[:,:,trajToRun]
+trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun]
+times = matfile['stateOut'].reshape(100,8,-1)[:,0,trajToRun]
+target = matfile['stateFinal'][trajToRun,:]
 
 # Load ANN
-filename = 'ANN2_703_relu.h5'
+# filename = 'ANN2_703_relu_n50.h5'
+# filename = 'ANN2_703_relu_n750.h5'
+filename = 'ANN2_703_relu_n100.h5'
 # filename = '../ImitationLearning/FirstIL_ANN.h5'
 ANN2 = models.load_model(filename)
 
@@ -54,7 +57,7 @@ x0 = trajFromOCL[0,:]
 
 n_times   =  len(times)
 nState    =  7
-nCtrl     =  2
+nCtrl     =  3
 
 
 t  = np.zeros(times.size)
@@ -73,12 +76,12 @@ x[0,:] = x0
 
 
 for i in range(n_times-1):
-    # print(i)
-    
-    error = target - x[i,:]
-    controller_input = []
 
-    Fi[i,:] = ctrlProfile[i,:]
+    error = target - x[i,:]
+    controller_input = np.hstack((error[:6],x[i,6])).reshape(1,-1)
+
+    Fi[i,:] = ANN2.predict(controller_input)
+    # Fi[i,:] = ctrlProfile[i,:]
 
         
     # Integrate dynamics
@@ -93,7 +96,7 @@ for i in range(n_times-1):
     # 
     x[i+1,:] = xsol[:,xsol.shape[1]-1]
     
-#END i LOOP
+
     
     
     
@@ -177,6 +180,9 @@ plt.plot(times,Fi[:,1],'--')
 plt.ylabel('Fy [N]')
 
 plt.subplot(313)
-plt.plot(times,ctrlProfile[:,3])
-plt.plot(times,Fi[:,3],'--')
+plt.plot(times,ctrlProfile[:,2])
+plt.plot(times,Fi[:,2],'--')
 plt.ylabel('M [N-m]')
+
+
+
