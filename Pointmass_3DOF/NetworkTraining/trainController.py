@@ -28,19 +28,19 @@ from keras import Model
 print("Loading mat file")
 matfile = loadmat('ANN2_data.mat')
 
-# Xfull = matfile['Xfull_2']
-# tfull = matfile['tfull_2']
-# X_train = matfile['Xtrain2'].reshape(-1,7)
-# t_train = matfile['ttrain2']
-# X_test = matfile['Xtest2'].reshape(-1,7)
-# t_test = matfile['ttest2']
-
-Xfull = matfile['Xfull_2'].reshape(-1,7)
-tfull = matfile['tfull_2'][:,2].reshape(-1,1)
+Xfull = matfile['Xfull_2']
+tfull = matfile['tfull_2']
 X_train = matfile['Xtrain2'].reshape(-1,7)
-t_train = matfile['ttrain2'][:,2].reshape(-1,1)
+t_train = matfile['ttrain2']
 X_test = matfile['Xtest2'].reshape(-1,7)
-t_test = matfile['ttest2'][:,2].reshape(-1,1)
+t_test = matfile['ttest2']
+
+# Xfull = matfile['Xfull_2'].reshape(-1,7)
+# tfull = matfile['tfull_2'][:,2].reshape(-1,1)
+# X_train = matfile['Xtrain2'].reshape(-1,7)
+# t_train = matfile['ttrain2'][:,2].reshape(-1,1)
+# X_test = matfile['Xtest2'].reshape(-1,7)
+# t_test = matfile['ttest2'][:,2].reshape(-1,1)
 
 
 
@@ -51,19 +51,19 @@ t_train_shuffled = t_train[shuffler]
     
 activation = "relu"
 # activation = "tanh"
-
-n_neurons = 2000
+#
+# n_neurons = 2000
 # n_neurons = 250
-# n_neurons = 75
+n_neurons = 75
 
 
 # Define ANN Architecture
 TF = Sequential()
-TF.add(layers.BatchNormalization())
+# TF.add(layers.BatchNormalization())
 TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal',input_dim=7))
 TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
-TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
-TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
+# TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
+# TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
@@ -84,7 +84,7 @@ TF.compile(optimizer=opt, loss='mean_squared_error', metrics = ["mean_squared_er
 # TF.compile(optimizer=opt, loss='mean_absolute_error', metrics = ["mean_absolute_error"])
 
 #Fit ANN
-TF.fit(X_train_shuffled, t_train_shuffled, batch_size=1000, epochs=10000, validation_split=0.05,callbacks=[es])
+TF.fit(X_train_shuffled, t_train_shuffled, batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
 
 # Evaluating model
 results = TF.evaluate(X_test,t_test)
@@ -153,16 +153,9 @@ plt.subplot(313)
 plt.plot(t_test[idxs,2])
 plt.plot(yvis[:,2])
 plt.xlabel('Index (-)')
-plt.ylabel('M (N-m)')
+plt.ylabel('Tz (N)')
 plt.tight_layout()
 
-
-plt.figure(3)
-plt.plot(t_test[idxs])
-plt.plot(yvis)
-plt.xlabel('Index (-)')
-plt.ylabel('M (N-m)')
-plt.tight_layout()
 
 # plt.figure(3)
 

@@ -4,7 +4,12 @@
 % conditions, this script will generate a specified number (nTrajs) of
 % thrust optimal trajectories, i.e. trajectories that minimize the
 % magnitude of thrust integrated over time.
-
+% 
+% Copyright
+% Copyright 2019 Jonas Koenemann, Moritz Diehl, University of Freiburg
+% Copyright 2015-2018 Jonas Koennemanm, Giovanni Licitra
+% Redistribution is permitted under the 3-Clause BSD License terms. Please
+% ensure the above copyright notice is visible in any derived work.
 
 clear all
 close all
@@ -13,7 +18,7 @@ clc
 
 
 %% Generation settings
-nTrajs = 1; % Number of trajectories to generate
+nTrajs = 1000; % Number of trajectories to generate
 plotting = 1; % Plot things or no?
 saveout = ['d',datestr(now,'yyyymmdd_HHoMM'),'_genTrajs','.mat'];
 
@@ -52,7 +57,7 @@ for i = 1:nTrajs
             conf = struct;
             conf.g = 9.81/6; % m/s2
             conf.g0 = 9.81; % m/s2
-            conf.r = 0.5;
+            conf.r = 1;
             conf.Isp = 300;
             conf.objective = objective;
             conf.surfFunc = surfFunction;
@@ -63,14 +68,14 @@ for i = 1:nTrajs
             varsfun    = @(sh) landervarsfun(sh, conf);
             daefun     = @(sh,x,z,u,p) landereqfun(sh,x,z,u,conf);
             pathcosts  = @(ch,x,~,u,~) landerpathcosts(ch,x,u,conf);
-%             terminalcosts  = @(ch,x,p) landerterminalcosts(ch,x,conf);
-%             gridconstraints = @(ch,k,K,x,p) landergridconstraints(ch,k,K,x,conf);
+            terminalcosts  = @(ch,x,p) landerterminalcosts(ch,x,conf);
+            gridconstraints = @(ch,k,K,x,p) landergridconstraints(ch,k,K,x,conf);
 
 
-%             solver = ocl.Problem([], varsfun, daefun, pathcosts,'terminalcost', terminalcosts,...
-%                 'gridconstraints',gridconstraints,'N',N);
+            solver = ocl.Problem([], varsfun, daefun, pathcosts,'terminalcost', terminalcosts,...
+                'gridconstraints',gridconstraints,'N',N);
 
-            solver = ocl.Problem([], varsfun, daefun, pathcosts, 'N',N);
+%             solver = ocl.Problem([], varsfun, daefun, pathcosts, 'N',N);
 
             %% Populate Solver Settings
             % Parameters
@@ -81,7 +86,6 @@ for i = 1:nTrajs
             % Generate Initial Conditions and Target [x,y,phi,dx,dy,dphi,m]
             x0 = [0,0,0,-20,-1,0,500];
             r = lower+(upper-lower).*rand(6,1);
-%             r = 1.0e+03*[1,1.3,0,0,0,0];
 %             r = [1000,1000,0];
             % Set Initial Conditions
             solver.setInitialBounds( 'x'   ,   r(1)   );
@@ -94,8 +98,8 @@ for i = 1:nTrajs
 
 
             % Set Target State
-            solver.setEndBounds( 'x' ,    target(1) );
-            solver.setEndBounds( 'y' ,    target(2) );
+%             solver.setEndBounds( 'x' ,    target(1) );
+%             solver.setEndBounds( 'y' ,    target(2) );
             solver.setEndBounds( 'phi' ,  target(3) );
             solver.setEndBounds( 'dx'  ,  target(4) );
             solver.setEndBounds( 'dy'  ,  target(5) );
@@ -110,6 +114,7 @@ for i = 1:nTrajs
 
             tic
             initialGuess    = solver.getInitialGuess();
+%             initialGuess    = solver.initialize();
             [solution,times] = solver.solve(initialGuess);
             timeToRun = toc;
             
@@ -179,7 +184,7 @@ for i = 1:nTrajs
             ctrlOut(:,:,i) = [Fx',Fy'];
             runTimeOut(i) = timeToRun;
             stateFinal(i,:) = [xa(end),ya(end),phia(end),dxa(end),dya(end),dphia(end),ma(end)];
-            
+
             if plotting
                 % Plot x,y,z trajectory
                 figure(1);
@@ -190,9 +195,9 @@ for i = 1:nTrajs
                    solution.states.y.value,...
                    'Color','b','LineWidth',1.5);
                 plot(xa(end),ya(end),'bo','MarkerSize',10)
-        %         plot(objective(1),objective(2),'c+','MarkerSize',10)
-        %         plot(gridPoints(:,1),gridPoints(:,2),'.')
-        %         plot(linspace(-100,100),surfFunction(linspace(-100,100)))
+                plot(objective(1),objective(2),'c+','MarkerSize',10)
+                plot(gridPoints(:,1),gridPoints(:,2),'.')
+                plot(linspace(-100,100),surfFunction(linspace(-100,100)))
                 xlabel('x[m]');ylabel('y[m]');
                 legend('Starting Point','Trajectory','Ending Point','Objective','Surface','location','best')
 
@@ -302,7 +307,7 @@ function landervarsfun(sh, c)
 
     % Define States
     sh.addState('x');
-    sh.addState('y','lb',0);
+    sh.addState('y');
     sh.addState('phi', 'lb', -pi/3, 'ub', pi/3);
     sh.addState('dx');
     sh.addState('dy');
@@ -329,8 +334,7 @@ function landereqfun(sh,x,~,u,c) % https://charlestytler.com/quadcopter-equation
 
 
     
-%     J = c.r^2*x.m;
-    J = x.m;
+    J = c.r^2*x.m;
 
     
     % Equations of Motion
@@ -351,6 +355,7 @@ function landerpathcosts(ch,x,u,~)
 %     ch.add(sqrt((u.Fx)^2 + (u.Fy)^2));
     ch.add(u.Fx^2);
     ch.add(u.Fy^2);
+
     % Time
 %     ch.add(1);
 
@@ -358,22 +363,22 @@ end
 
 function landerterminalcosts(ch,x,c)
     
-%     ch.add(5e5*(norm([x.x,x.y] - c.objective)));
+    ch.add(5e7*(norm([x.x,x.y] - c.objective)));
 
 end
 
 
 function landergridconstraints(ch,k,K,x,c)
     %Constrain y to being above surface and  final y to surface
-% %     if k<K
-% %         ch.add(x.y, '>=', c.surfFunc(x.x));
-% %     end
-% %     
-% %     if k==K
-% %          ch.add(x.y, '==', c.surfFunc(x.x));
-% %          ch.add(x.x, '>=', -100);
-% %          ch.add(x.x, '<=',  100);
-% %     end
+    if k<K
+        ch.add(x.y, '>=', c.surfFunc(x.x));
+    end
+    
+    if k==K
+         ch.add(x.y, '==', c.surfFunc(x.x));
+         ch.add(x.x, '>=', -100);
+         ch.add(x.x, '<=',  100);
+    end
 end
 
 

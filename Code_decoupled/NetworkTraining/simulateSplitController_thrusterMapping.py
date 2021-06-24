@@ -46,7 +46,14 @@ target = matfile['stateFinal'][trajToRun,:]
 # filename = 'ANN2_703_relu_n750.h5'
 # filename = 'ANN2_703_relu_n100.h5'
 # filename = 'ANN2_703_relu_n75.h5'
-filename = 'ANN2_703_relu_n2000.h5'
+# filename = 'ANN2_split_703_relu_n200.h5'
+# filename = 'ANN2_split_703_relu_n10.h5'
+# filename = 'ANN2_split_703_relu_n7.h5'
+# filename = 'ANN2_split_703_relu_n25.h5'
+# filename = 'ANN2_split_703_relu_n25_75_2000.h5'
+# filename = 'ANN2_split_703_relu_n25_75_500.h5'
+# filename = 'ANN2_split_703_relu_n25_75_2000.h5'
+filename = 'ANN2_split_703_relu_n25_75_2000_WORKING.h5'
 # filename = '../ImitationLearning/FirstIL_ANN.h5'
 ANN2 = models.load_model(filename)
 
@@ -59,13 +66,13 @@ x0 = trajFromOCL[0,:]
 
 n_times   =  len(times)
 nState    =  7
-nCtrl     =  3
+nCtrl     =  2
 
 
 t  = np.zeros(times.size)
 x  = np.zeros((n_times,nState))
 Fi = np.zeros((n_times,nCtrl))
-
+r = 1
 
 # ============================================================================
 # Run Simulation
@@ -82,12 +89,20 @@ for i in range(n_times-1):
     error = target - x[i,:]
     controller_input = np.hstack((error[:6],x[i,6])).reshape(1,-1)
 
-    Fi[i,:] = ANN2.predict(controller_input)
-    # Fi[i,:] = ctrlProfile[i,:]
+    prediction = ANN2.predict(controller_input)
+    phi = x[i,2]
+    TxTyM = np.hstack((prediction[0],prediction[1])).reshape(-1)
 
-        
+    D = np.array([[np.cos(phi),-np.sin(phi)],[np.sin(phi),np.cos(phi)],[r,0]])
+    
+    # Fi[i,:] = np.linalg.inv((D.transpose()@D))@D.transpose()@TxTyM
+    Fi[i,:] = np.linalg.inv((D.transpose()@D))@D.transpose()@ctrlProfile[i,:]
+
+    # if i == 30:
+    #     Fi[i,0] += 200
+            
     # Integrate dynamics
-    sol = integrate.solve_ivp(fun=lambda t, y: LD.LanderEOM_decoupled(t,y,Fi[i,:]),\
+    sol = integrate.solve_ivp(fun=lambda t, y: LD.LanderEOM_coupled(t,y,Fi[i,:]),\
                                    t_span=(times[i],times[i+1]), \
                                    y0=x[i,:]) # Default method: rk45
     
@@ -100,8 +115,15 @@ for i in range(n_times-1):
     
 
     
-    
-    
+# ============================================================================
+# Evaluate
+# ============================================================================
+J_ANN = LD.calculatePathCost(times,Fi)
+J_OCL = LD.calculatePathCost(times, ctrlProfile)
+
+print("Cost ANN: {}".format(J_ANN))
+print("Cost OCL: {}".format(J_OCL))
+
 # ============================================================================
 # Plotting
 # ============================================================================

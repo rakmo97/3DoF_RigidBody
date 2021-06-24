@@ -13,8 +13,8 @@ clc
 
 
 %% Generation settings
-nTrajs = 1; % Number of trajectories to generate
-plotting = 1; % Plot things or no?
+nTrajs = 1000; % Number of trajectories to generate
+plotting = 0; % Plot things or no?
 saveout = ['d',datestr(now,'yyyymmdd_HHoMM'),'_genTrajs','.mat'];
 
 % Lower and upper values for random initial conditions
@@ -346,6 +346,7 @@ function landereqfun(sh,x,~,u,c) % https://charlestytler.com/quadcopter-equation
     sh.setODE( 'dy'  , (1/x.m)*u.Fy - c.g);
     sh.setODE( 'dphi', (1/J)*u.M);
     sh.setODE( 'm'   , -sqrt((u.Fx)^2 + (u.Fy)^2 + (u.M)^2) / (c.Isp*c.g0));
+%     sh.setODE( 'm'   , -norm([u.Fx,u.Fy,u.M]) / (c.Isp*c.g0));
 
 
 end

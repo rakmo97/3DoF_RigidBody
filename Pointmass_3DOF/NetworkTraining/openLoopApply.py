@@ -28,25 +28,20 @@ print("Loading mat file")
 trajToRun = 0 # Indexing variable
 
 
-# matfile = loadmat('ANN2_data.mat')
-# idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
-# ctrlProfile = matfile['tfull_2'][idxs,:]
-# trajFromOCL = matfile['Xfull_2'][idxs,:]*np.array([-1,-1,-1,-1,-1,-1,1])
-# times = matfile['times'][idxs,:]
+matfile = loadmat('ANN2_data.mat')
+idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
+ctrlProfile = matfile['tfull_2'][idxs,:]
+trajFromOCL = matfile['Xfull_2'][idxs,:]*np.array([-1,-1,-1,-1,-1,-1,1])
+times = matfile['times'][idxs,:]
 
-matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210615_12o29_genTrajs.mat')
-# matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210512_15o21_genTrajs.mat')
-ctrlProfile = matfile['ctrlOut'].reshape(100,3,-1)[:,:,trajToRun]
-trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun]
-times = matfile['stateOut'].reshape(100,8,-1)[:,0,trajToRun]
-target = matfile['stateFinal'][trajToRun,:]
+# matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210512_15o18_genTrajs.mat')
+# # matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210512_15o21_genTrajs.mat')
+# ctrlProfile = matfile['ctrlOut'].reshape(100,2,-1)[:,:,trajToRun]
+# trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun]
+# times = matfile['stateOut'].reshape(100,8,-1)[:,0,trajToRun]
 
 # Load ANN
-# filename = 'ANN2_703_relu_n50.h5'
-# filename = 'ANN2_703_relu_n750.h5'
-# filename = 'ANN2_703_relu_n100.h5'
-# filename = 'ANN2_703_relu_n75.h5'
-filename = 'ANN2_703_relu_n2000.h5'
+filename = 'ANN2_703_relu.h5'
 # filename = '../ImitationLearning/FirstIL_ANN.h5'
 ANN2 = models.load_model(filename)
 
@@ -79,15 +74,11 @@ x[0,:] = x0
 
 for i in range(n_times-1):
 
-    error = target - x[i,:]
-    controller_input = np.hstack((error[:6],x[i,6])).reshape(1,-1)
-
-    Fi[i,:] = ANN2.predict(controller_input)
-    # Fi[i,:] = ctrlProfile[i,:]
+    Fi[i,:] = ctrlProfile[i,:]
 
         
     # Integrate dynamics
-    sol = integrate.solve_ivp(fun=lambda t, y: LD.LanderEOM_decoupled(t,y,Fi[i,:]),\
+    sol = integrate.solve_ivp(fun=lambda t, y: LD.LanderEOM(t,y,Fi[i,:]),\
                                    t_span=(times[i],times[i+1]), \
                                    y0=x[i,:]) # Default method: rk45
     
@@ -98,7 +89,7 @@ for i in range(n_times-1):
     # 
     x[i+1,:] = xsol[:,xsol.shape[1]-1]
     
-
+#END i LOOP
     
     
     

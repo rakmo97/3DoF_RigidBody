@@ -70,16 +70,20 @@ for i = 1:length(datafiles)
                 d.stateFinal(j,6)-d.stateOut(k,7,j),... % dphi
                 d.stateOut(k,8,j),...
                 ];
+        
+            phi = d.stateOut(k,4,j);
+            D = [cos(phi),-sin(phi);...
+                sin(phi),cos(phi);...
+                1,0];
             
-            tfull_2(count,:) = [d.ctrlOut(k,1,j),d.ctrlOut(k,2,j),d.ctrlOut(k,3,j)];
+            tfull_2(count,:) = (D*[d.ctrlOut(k,1,j),d.ctrlOut(k,2,j)]')';
             
             times(count) = d.stateOut(k,1,j);
             
-            if(rem(count,100)==0)
-                tfull_2(count,:) = [0,0,0];
-%                 disp(count)
-            end
-            
+%             if(rem(count,100)==0)
+%                 tfull_2(count,:) = [0,0,0];
+%             end
+%             
             count = count+1;
         end
 
@@ -104,6 +108,6 @@ disp('Done separating')
 %% Save data to .mat file
 disp('Saving data to mat file')
 
-save('../NetworkTraining/ANN2_data.mat','Xfull_2','tfull_2','Xtrain2','ttrain2','Xtest2','ttest2','times_train','times_test','times');
+save('../NetworkTraining_uncoupled/ANN2_data.mat','Xfull_2','tfull_2','Xtrain2','ttrain2','Xtest2','ttest2','times_train','times_test','times');
 
 disp('Saved')

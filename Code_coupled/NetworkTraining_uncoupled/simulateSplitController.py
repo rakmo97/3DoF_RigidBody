@@ -25,7 +25,7 @@ from matplotlib import pyplot as plt
 # ============================================================================
 print("Loading mat file")
 
-trajToRun = 0 # Indexing variable
+trajToRun = 5 # Indexing variable
 
 
 # matfile = loadmat('ANN2_data.mat')
@@ -46,7 +46,14 @@ target = matfile['stateFinal'][trajToRun,:]
 # filename = 'ANN2_703_relu_n750.h5'
 # filename = 'ANN2_703_relu_n100.h5'
 # filename = 'ANN2_703_relu_n75.h5'
-filename = 'ANN2_703_relu_n2000.h5'
+# filename = 'ANN2_split_703_relu_n200.h5'
+# filename = 'ANN2_split_703_relu_n10.h5'
+# filename = 'ANN2_split_703_relu_n7.h5'
+# filename = 'ANN2_split_703_relu_n25.h5'
+# filename = 'ANN2_split_703_relu_n25_75_2000.h5'
+# filename = 'ANN2_split_703_relu_n25_75_500.h5'
+# filename = 'ANN2_split_703_relu_n25_75_2000.h5'
+filename = 'ANN2_split_703_relu_n25_75_2000_WORKING.h5'
 # filename = '../ImitationLearning/FirstIL_ANN.h5'
 ANN2 = models.load_model(filename)
 
@@ -82,10 +89,13 @@ for i in range(n_times-1):
     error = target - x[i,:]
     controller_input = np.hstack((error[:6],x[i,6])).reshape(1,-1)
 
-    Fi[i,:] = ANN2.predict(controller_input)
+    prediction = ANN2.predict(controller_input)
+    Fi[i,:] = np.hstack((prediction[0],prediction[1])).reshape(-1)
     # Fi[i,:] = ctrlProfile[i,:]
 
-        
+    if i == 30:
+        Fi[i,0] += 300
+            
     # Integrate dynamics
     sol = integrate.solve_ivp(fun=lambda t, y: LD.LanderEOM_decoupled(t,y,Fi[i,:]),\
                                    t_span=(times[i],times[i+1]), \
@@ -100,8 +110,15 @@ for i in range(n_times-1):
     
 
     
-    
-    
+# ============================================================================
+# Evaluate
+# ============================================================================
+J_ANN = LD.calculatePathCost(times,Fi)
+J_OCL = LD.calculatePathCost(times, ctrlProfile)
+
+print("Cost ANN: {}".format(J_ANN))
+print("Cost OCL: {}".format(J_OCL))
+
 # ============================================================================
 # Plotting
 # ============================================================================

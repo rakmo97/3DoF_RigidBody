@@ -75,10 +75,9 @@ for i = 1:length(datafiles)
             
             times(count) = d.stateOut(k,1,j);
             
-            if(rem(count,100)==0)
-                tfull_2(count,:) = [0,0,0];
-%                 disp(count)
-            end
+%             if(rem(count,100)==0)
+%                 tfull_2(count,:) = [0,0,0];
+%             end
             
             count = count+1;
         end
@@ -92,7 +91,7 @@ disp(['Full dataset size: ',num2str(count-1)])
 %% Separate into training and testing data
 disp('Separating training and testing data')
 
-num2train = 300000;
+num2train = 107800;
 Xtrain2 = Xfull_2(1:num2train,:);
 ttrain2 = tfull_2(1:num2train,:);
 Xtest2 = Xfull_2(num2train+1:end,:);
