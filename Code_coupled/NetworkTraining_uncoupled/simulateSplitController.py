@@ -25,19 +25,18 @@ from matplotlib import pyplot as plt
 # ============================================================================
 print("Loading mat file")
 
-trajToRun = 5 # Indexing variable
+trajToRun = 0 # Indexing variable
 
 
-# matfile = loadmat('ANN2_data.mat')
-# idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
-# ctrlProfile = matfile['tfull_2'][idxs,:]
-# trajFromOCL = matfile['Xfull_2'][idxs,:]*np.array([-1,-1,-1,-1,-1,-1,1])
-# times = matfile['times'][idxs,:]
+matfile = loadmat('ANN2_data.mat')
+idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
+ctrlProfile = matfile['tfull_2'][idxs,:]
+trajFromOCL = matfile['Xfull_2'][idxs,:]*np.array([-1,-1,-1,-1,-1,-1,1])
+times = matfile['times'][idxs,:]
 
-matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210615_12o29_genTrajs.mat')
-# matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210512_15o21_genTrajs.mat')
-ctrlProfile = matfile['ctrlOut'].reshape(100,3,-1)[:,:,trajToRun]
-trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun]
+matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210826_20o12_genTrajs.mat')
+# ctrlProfile = matfile['ctrlOut'].reshape(100,2,-1)[:,:,trajToRun]
+# trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun]
 times = matfile['stateOut'].reshape(100,8,-1)[:,0,trajToRun]
 target = matfile['stateFinal'][trajToRun,:]
 
@@ -53,7 +52,7 @@ target = matfile['stateFinal'][trajToRun,:]
 # filename = 'ANN2_split_703_relu_n25_75_2000.h5'
 # filename = 'ANN2_split_703_relu_n25_75_500.h5'
 # filename = 'ANN2_split_703_relu_n25_75_2000.h5'
-filename = 'ANN2_split_703_relu_n25_75_2000_WORKING.h5'
+filename = 'ANN2_split_703_relu_n25_75_2000.h5'
 # filename = '../ImitationLearning/FirstIL_ANN.h5'
 ANN2 = models.load_model(filename)
 
@@ -93,8 +92,8 @@ for i in range(n_times-1):
     Fi[i,:] = np.hstack((prediction[0],prediction[1])).reshape(-1)
     # Fi[i,:] = ctrlProfile[i,:]
 
-    if i == 30:
-        Fi[i,0] += 300
+    # if i == 30:
+    #     Fi[i,0] += 300
             
     # Integrate dynamics
     sol = integrate.solve_ivp(fun=lambda t, y: LD.LanderEOM_decoupled(t,y,Fi[i,:]),\

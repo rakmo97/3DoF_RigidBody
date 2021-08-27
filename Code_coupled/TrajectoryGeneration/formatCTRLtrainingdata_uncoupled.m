@@ -11,14 +11,14 @@ datadir = dir(directory);
 filenames = {datadir.name};
 datafiles = filenames(3:end);
 
-directory = 'ToSurface_Trajectories';
-addpath(directory);
-datadir = dir(directory);
-filenames = {datadir.name};
-datafiles2 = filenames(3:end);
+% directory = 'ToSurface_Trajectories';
+% addpath(directory);
+% datadir = dir(directory);
+% filenames = {datadir.name};
+% datafiles2 = filenames(3:end);
 
-datafiles =  {[datafiles,datafiles2]};
-datafiles = datafiles{1};
+% datafiles =  {[datafiles,datafiles2]};
+% datafiles = datafiles{1};
 
 
 %% Pull data and format
@@ -43,6 +43,7 @@ end
 % Preallocate
 Xfull_2 = zeros(numdata,7);
 tfull_2 = zeros(numdata,3);
+t_orig = zeros(numdata,2);
 times = zeros(numdata,1);
 
 count = 1;
@@ -70,13 +71,23 @@ for i = 1:length(datafiles)
                 d.stateFinal(j,6)-d.stateOut(k,7,j),... % dphi
                 d.stateOut(k,8,j),...
                 ];
+%             Xfull_2(count,:) = [d.stateOut(k,2,j),... % x
+%                 d.stateOut(k,3,j),... % y
+%                 d.stateOut(k,4,j),... % phi
+%                 d.stateOut(k,5,j),... % dx
+%                 d.stateOut(k,6,j),... % dy
+%                 d.stateOut(k,7,j),... % dphi
+%                 d.stateOut(k,8,j),...
+%                 ];
         
             phi = d.stateOut(k,4,j);
             D = [cos(phi),-sin(phi);...
                 sin(phi),cos(phi);...
                 1,0];
             
-            tfull_2(count,:) = (D*[d.ctrlOut(k,1,j),d.ctrlOut(k,2,j)]')';
+%             disp((D*[d.ctrlOut(k,1,j);d.ctrlOut(k,2,j)])');
+            tfull_2(count,:) = (D*[d.ctrlOut(k,1,j);d.ctrlOut(k,2,j)])';
+            t_orig(count,:) = [d.ctrlOut(k,1,j);d.ctrlOut(k,2,j)];
             
             times(count) = d.stateOut(k,1,j);
             
@@ -96,7 +107,8 @@ disp(['Full dataset size: ',num2str(count-1)])
 %% Separate into training and testing data
 disp('Separating training and testing data')
 
-num2train = 300000;
+num2train = 45000;
+% num2train = 300000;
 Xtrain2 = Xfull_2(1:num2train,:);
 ttrain2 = tfull_2(1:num2train,:);
 Xtest2 = Xfull_2(num2train+1:end,:);
@@ -108,6 +120,6 @@ disp('Done separating')
 %% Save data to .mat file
 disp('Saving data to mat file')
 
-save('../NetworkTraining_uncoupled/ANN2_data.mat','Xfull_2','tfull_2','Xtrain2','ttrain2','Xtest2','ttest2','times_train','times_test','times');
+save('../NetworkTraining_uncoupled/ANN2_data.mat','Xfull_2','tfull_2','Xtrain2','ttrain2','Xtest2','ttest2','times_train','times_test','times','t_orig');
 
 disp('Saved')

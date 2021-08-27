@@ -13,14 +13,14 @@ clc
 
 
 %% Generation settings
-nTrajs = 1; % Number of trajectories to generate
+nTrajs = 500; % Number of trajectories to generate
 plotting = 1; % Plot things or no?
 saveout = ['d',datestr(now,'yyyymmdd_HHoMM'),'_genTrajs','.mat'];
 
 % Lower and upper values for random initial conditions
 % [x,y,phi,dx,dy,dphi,m]
-lower = [-1000, 1000, -pi/6, -0.5, -0.5, -1e-4]';
-upper = [ 1000, 1500,  pi/6,  0.5,  0.0,  1e-4]';
+lower = [-1000, 1000, -pi/6,   -0, -0.5, -1e-4]';
+upper = [ -500, 1500,  pi/6,  0.5,  0.0,  1e-4]';
 
 % Target State [x,y,phi,dx,dy,dphi,m]
 target = [0,0,0,0,0,0,0];
@@ -348,9 +348,9 @@ end
 function landerpathcosts(ch,x,u,~)
     
     % Cost Function (thrust magnitude)
-%     ch.add(sqrt((u.Fx)^2 + (u.Fy)^2));
-    ch.add(u.Fx^2);
-    ch.add(u.Fy^2);
+    ch.add(sqrt((u.Fx)^2 + (u.Fy)^2 + 1.0));
+%     ch.add(u.Fx^2);
+%     ch.add(u.Fy^2);
     % Time
 %     ch.add(1);
 

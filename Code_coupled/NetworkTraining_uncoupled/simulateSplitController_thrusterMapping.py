@@ -25,20 +25,23 @@ from matplotlib import pyplot as plt
 # ============================================================================
 print("Loading mat file")
 
-trajToRun = 0 # Indexing variable
+trajToRun = 1 # Indexing variable
 
 
-# matfile = loadmat('ANN2_data.mat')
-# idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
-# ctrlProfile = matfile['tfull_2'][idxs,:]
-# trajFromOCL = matfile['Xfull_2'][idxs,:]*np.array([-1,-1,-1,-1,-1,-1,1])
-# times = matfile['times'][idxs,:]
+matfile = loadmat('ANN2_data.mat')
+idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
+ctrlProfile = matfile['tfull_2'][idxs,:]
+ctrlProfileOrig = matfile['t_orig'][idxs,:]
+trajFromOCL = matfile['Xfull_2'][idxs,:]*np.array([-1,-1,-1,-1,-1,-1,1])
+# trajFromOCL = matfile['Xfull_2'][idxs,:]
+times = matfile['times'][idxs,:]
 
-matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210604_11o05_genTrajs.mat')
-ctrlProfile = matfile['ctrlOut'].reshape(100,2,-1)[:,:,trajToRun]
-trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun]
-times = matfile['stateOut'].reshape(100,8,-1)[:,0,trajToRun]
-target = matfile['stateFinal'][trajToRun,:]
+matfile = loadmat('../TrajectoryGeneration/ToOrigin_Trajectories/d20210826_20o12_genTrajs.mat')
+# ctrlProfile = matfile['ctrlOut'].reshape(100,2,-1)[:,:,trajToRun-1]
+# ctrlProfileOrig = matfile['ctrlOut'].reshape(100,2,-1)[:,:,trajToRun-1]
+# trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun-1]
+# times = matfile['stateOut'].reshape(100,8,-1)[:,0,trajToRun-1]
+target = matfile['stateFinal'][trajToRun-1,:]
 
 # Load ANN
 # filename = 'ANN2_703_relu_n50.h5'
@@ -55,7 +58,8 @@ target = matfile['stateFinal'][trajToRun,:]
 # filename = 'ANN2_split_703_relu_n25_75_2000_WORKING.h5's
 # filename = '../ImitationLearning/FirstIL_ANN.h5'
 # filename = 'ANN2_703_relu_n2000.h5'
-filename = 'ANN2_703_relu_n75.h5'
+# filename = 'ANN2_703_relu_n75.h5'
+filename = 'ANN2_split_703_relu_n25_75_2000.h5'
 ANN2 = models.load_model(filename)
 
 
@@ -71,9 +75,11 @@ nCtrl     =  2
 
 
 t  = np.zeros(times.size)
+phiSave  = np.zeros(times.size)
 condNumbers  = np.zeros(times.size)
 x  = np.zeros((n_times,nState))
 Fi = np.zeros((n_times,nCtrl))
+TxTyMsave = np.zeros((n_times,3))
 r = 1
 
 # ============================================================================
@@ -92,18 +98,33 @@ for i in range(n_times-1):
     controller_input = np.hstack((error[:6],x[i,6])).reshape(1,-1)
 
     prediction = ANN2.predict(controller_input)
-    # TxTyM = np.hstack((prediction[0],prediction[1])).reshape(-1)
-    TxTyM = prediction.reshape(-1)
-
+    TxTyM = np.hstack((prediction[0],prediction[1])).reshape(-1)
+    # TxTyM = prediction.reshape(-1)
+    
     phi = x[i,2]
+    phiSave[i] = phi
     D = np.array([[np.cos(phi),-np.sin(phi)],[np.sin(phi),np.cos(phi)],[r,0]])
     condNumbers[i] = np.linalg.cond(D)
     # print(D)
+    # print('-----------')
+    # print("time {} s".format(times[i]))
+    # print("Phi: {}".format(phi))
+    # Fi[i,:] = np.linalg.inv((D.transpose()@D))@D.transpose()@TxTyM
     
-    Fi[i,:] = np.linalg.inv((D.transpose()@D))@D.transpose()@TxTyM
+    TxTyMsave[i,:] = TxTyM
+    # TxTyMsave[i,:] = D@ctrlProfileOrig[i,:]
     
+    # print('3 vector from Python: {}'.format(TxTyMsave[i,:]))
+    # print('3 vect from Matlab: {}'.format(ctrlProfile[i,:]))
     
-    # Fi[i,:] = np.linalg.inv((D.transpose()@D))@D.transpose()@(D@ctrlProfile[i,:])
+    print('')
+    
+    # if i == 70:
+    #     print('')
+        
+
+    # Fi[i,:] = np.linalg.inv(D.transpose() @ D) @ D.transpose() @ (D@ctrlProfileOrig[i,:])
+    Fi[i,:] = np.linalg.inv(D.transpose() @ D) @ D.transpose() @ ctrlProfile[i,:]
     # Fi[i,:] = ctrlProfile[i,:]
 
     # if i == 30:
@@ -126,8 +147,8 @@ for i in range(n_times-1):
 # ============================================================================
 # Evaluate
 # ============================================================================
-J_ANN = LD.calculatePathCost(times,Fi)
-J_OCL = LD.calculatePathCost(times, ctrlProfile)
+J_ANN = LD.calculatePathCost(times, Fi)
+J_OCL = LD.calculatePathCost(times, ctrlProfileOrig)
 
 print("Cost ANN: {}".format(J_ANN))
 print("Cost OCL: {}".format(J_OCL))
@@ -200,21 +221,31 @@ plt.tight_layout()
 
 
 plt.figure(4)
-plt.subplot(311)
-plt.plot(times,ctrlProfile[:,0])
+plt.subplot(211)
+plt.plot(times,ctrlProfileOrig[:,0])
 plt.plot(times,Fi[:,0],'--')
 plt.ylabel('Fx [N]')
 plt.legend(['OpenOCL','ANN'],loc='best')
 
-plt.subplot(312)
-plt.plot(times,ctrlProfile[:,1])
+plt.subplot(212)
+plt.plot(times,ctrlProfileOrig[:,1])
 plt.plot(times,Fi[:,1],'--')
 plt.ylabel('Fy [N]')
 
+
+plt.figure(5)
+plt.subplot(311)
+plt.plot(times,ctrlProfile[:,0])
+plt.plot(times,TxTyMsave[:,0],'--')
+plt.ylabel('Tx [N]')
+plt.legend(['OpenOCL','ANN'],loc='best')
+
+plt.subplot(312)
+plt.plot(times,ctrlProfile[:,1])
+plt.plot(times,TxTyMsave[:,1],'--')
+plt.ylabel('Ty [N]')
+
 plt.subplot(313)
 plt.plot(times,ctrlProfile[:,2])
-plt.plot(times,Fi[:,2],'--')
-plt.ylabel('M [N-m]')
-
-
-
+plt.plot(times,TxTyMsave[:,2],'--')
+plt.ylabel('M [Nm]')

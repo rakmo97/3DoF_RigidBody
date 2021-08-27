@@ -107,11 +107,7 @@ def calculatePathCost(t,u):
         for j in range(u.shape[1]):
             L[i] += u[i,j]**2
             
-    # print("L: {}".format(L))
-    # print("L shape.{}".format(L.shape))
-    # print("t shape.{}".format(t.shape))
-    
-    intL = integrate.trapz(L.reshape(-1,),x=t.reshape(-1))
+    intL = integrate.trapz(L,x=t)
     
     return intL
     
