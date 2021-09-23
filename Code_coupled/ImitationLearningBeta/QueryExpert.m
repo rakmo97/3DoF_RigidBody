@@ -233,9 +233,9 @@ function proxyOut = QueryExpert(ICs)
 
                 times(count) = d.stateOut(k,1,j);
 
-                if(rem(count,100)==0)
-                    tagg(count,:) = [0,0];
-                end
+%                 if(rem(count,100)==0)
+%                     tagg(count,:) = [0,0];
+%                 end
 
                 count = count+1;
             end
@@ -310,8 +310,10 @@ end
 function landerpathcosts(ch,x,u,~)
     
     % Cost Function (thrust magnitude)
-    ch.add(u.Fx^2);
-    ch.add(u.Fy^2);
+%     ch.add(u.Fx^2);
+%     ch.add(u.Fy^2);
+    ch.add(sqrt((u.Fx)^2 + (u.Fy)^2 + 1.0));
+
 
 end
 

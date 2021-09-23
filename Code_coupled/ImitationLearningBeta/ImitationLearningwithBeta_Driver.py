@@ -15,6 +15,7 @@ import numpy as np
 from keras.callbacks import EarlyStopping
 import time
 from matplotlib import pyplot as plt
+%matplotlib inline
 
 # ============================================================================
 # Load Data
@@ -43,7 +44,7 @@ print("Trajectory file loaded")
 print("Loading controller")
 
 # filename = '../NetworkTraining/ANN2_703_relu.h5'
-filename = '../NetworkTraining/ANN2_703_relu_n75.h5'
+filename = '../NetworkTraining/ANN2_703_relu_n100.h5'
 policy = models.load_model(filename)
 
 print("Controller Loaded")
@@ -84,7 +85,7 @@ for epis in range(num_episodes):
     t_OCL = times_full[idxs[epis]*100:idxs[epis]*100+100,:]
         
     '''Run Policy'''
-    times, ICs, Fapplied = ILF.RunPolicyWithBeta(x0, x_OCL, u_OCL, t_OCL, policy, epis)
+    times, ICs, Fapplied, beta = ILF.RunPolicyWithBeta(x0, x_OCL, u_OCL, t_OCL, policy, epis)
     
     
     plt.figure()
@@ -93,7 +94,7 @@ for epis in range(num_episodes):
     plt.plot(ICs[idx_rem,0],ICs[idx_rem,1],'-x')
     plt.xlabel('X [m]')
     plt.ylabel('Y [m]')
-    plt.title("Trajectory for Episode {}".format(epis))
+    plt.title("Trajectory for Episode {} | Beta = {}".format(epis, beta))
     plt.legend(['OCL','IL to query','IL to ignore'])
     plt.show()
     
@@ -104,8 +105,8 @@ for epis in range(num_episodes):
     plt.plot(times,u_OCL[:,0])
     plt.plot(times,Fapplied[:,0],'--')
     plt.ylabel('Fx [N]')
-    plt.legend(['OCL','ANN'])
-    plt.title("Thrust Profiles for Episode {}".format(epis))
+    plt.legend(['OCL','F_applied'])
+    plt.title("Thrust Profiles for Episode {} | Beta = {}".format(epis, beta))
     plt.subplot(212)
     plt.plot(times,u_OCL[:,1])
     plt.plot(times,Fapplied[:,1],'--')

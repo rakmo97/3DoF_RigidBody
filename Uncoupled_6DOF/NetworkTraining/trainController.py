@@ -5,22 +5,23 @@ Created on Mon Jun  1 14:22:37 2020
 @author: Omkar
 """
 
-from keras.wrappers.scikit_learn import KerasRegressor
+from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.model_selection import GridSearchCV
-from keras.models import Sequential
-from keras import layers
+from tensorflow.keras.models import Sequential
+from tensorflow.keras import layers
 from sklearn.model_selection import train_test_split
 from scipy.io import loadmat
 from matplotlib import pyplot as plt
 import numpy as np
-from keras.metrics import RootMeanSquaredError
+from tensorflow.keras.metrics import RootMeanSquaredError
 from sklearn.preprocessing import MinMaxScaler
-from keras.optimizers import Adam
-from keras.optimizers import Nadam
-from keras.optimizers import sgd
-from keras.callbacks import EarlyStopping
-from keras import Input
-from keras import Model
+from tensorflow.keras.optimizers import Adam
+# from keras.optimizers import Nadam
+# from keras.optimizers import sgd
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras import Input
+from tensorflow.keras import Model
+import tensorflow_addons as tfa
 
 # import mat73
 
@@ -63,8 +64,8 @@ activation = "relu"
 n_neurons = 1000
 # n_neurons = 50
 # n_neurons = 25
-n_neuronsA = 200
-n_neuronsB = 200
+n_neuronsA = 750
+n_neuronsB = 750
 
 # Define ANN Architecture
 inputA = Input(shape=(n_in,))
@@ -72,9 +73,10 @@ inputA = Input(shape=(n_in,))
 x = layers.Lambda(lambda w: w)(inputA)
 x = Model(inputs=inputA, outputs=x)
 
-y = layers.Dense(n_neuronsA, activation=activation,kernel_initializer='normal')(x.output)
-y = layers.Dense(n_neuronsA, activation=activation,kernel_initializer='normal')(y)
-y = layers.Dense(n_neuronsA, activation=activation,kernel_initializer='normal')(y)
+y = tfa.layers.SpectralNormalization(layers.Dense(n_neuronsA, activation=activation,kernel_initializer='normal'))(x.output)
+# y = layers.Dense(n_neuronsA, activation=activation,kernel_initializer='normal')(x.output)
+# y =  tfa.layers.SpectralNormalization(layers.Dense(n_neuronsA, activation=activation,kernel_initializer='normal'))(y)
+# y = layers.Dense(n_neuronsA, activation=activation,kernel_initializer='normal')(y)
 y = layers.Dense(3, activation='linear',kernel_initializer='normal')(y)
 
 z = layers.BatchNormalization()(x.output)
@@ -99,7 +101,8 @@ TF.compile(optimizer=opt, loss='mean_squared_error', metrics = ["mean_squared_er
 #Fit ANN
 # TF.fit(X_train, t_train, batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
 # TF.fit(X_train, [t_train[:,0:3],t_train[:,3:6]], batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
-TF.fit(X_train_shuffled, [t_train_shuffled[:,0:3],t_train_shuffled[:,3:6]], batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
+# TF.fit(X_train_shuffled, [t_train_shuffled[:,0:3],t_train_shuffled[:,3:6]], batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
+history = TF.fit(X_train_shuffled, [t_train_shuffled[:,0:3],t_train_shuffled[:,3:6]], batch_size=100, epochs=1, validation_split=0.05,callbacks=[es])
 
 # Evaluating model
 results = TF.evaluate(X_test,[t_test[:,0:3],t_test[:,3:6]])
@@ -110,8 +113,8 @@ plt.close('all')
 
 # Plotting histories
 plt.figure(1)
-plt.plot(TF.history.history['loss'])
-plt.plot(TF.history.history['val_loss'])
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
 plt.legend(['train', 'validation'], loc='best')
 plt.title('Loss')
 plt.yscale('log')
@@ -119,8 +122,8 @@ plt.xlabel('Epochs')
 plt.ylabel('Cost (MSE)')
 
 plt.figure(2)
-plt.plot(TF.history.history['loss'])
-plt.plot(TF.history.history['val_loss'])
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
 # plt.plot(TF.history.history['accuracy'])
 # plt.plot(TF.history.history['val_accuracy'])
 plt.legend(['train', 'validation'], loc='best')

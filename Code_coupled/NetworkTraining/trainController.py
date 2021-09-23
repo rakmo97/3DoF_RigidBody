@@ -45,12 +45,12 @@ activation = "relu"
 # activation = "tanh"
 
 # n_neurons = 750
-n_neurons = 50
+n_neurons = 100
 
 
 # Define ANN Architecture
 TF = Sequential()
-# TF.add(layers.BatchNormalization())
+TF.add(layers.BatchNormalization())
 TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal',input_dim=7))
 TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
@@ -77,6 +77,7 @@ results = TF.evaluate(X_test,t_test)
 print("Test Loss: ", results[0])
 print("Test Accuracy: ", results[1])
 
+plt.close('all')
 
 # Plotting histories
 plt.figure(1)

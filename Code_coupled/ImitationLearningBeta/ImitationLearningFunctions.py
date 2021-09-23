@@ -107,7 +107,7 @@ def RunPolicyWithBeta(x0,x_OCL,u_OCL,t_OCL,policy,i):
 
 
     
-    return times, states, Fapplied
+    return times, states, Fapplied, beta
     
     
 # ============================================================================
@@ -138,7 +138,7 @@ def RetrainOnAggregatedDataset(policy):
     
     # Re-train
     es = EarlyStopping(monitor='val_loss',mode='min',verbose=1,patience=10)
-    policy.fit(Xagg_shuffled, tagg_shuffled, batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
+    history = policy.fit(Xagg_shuffled, tagg_shuffled, batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
 
     # Evaluating model
     results = policy.evaluate(Xagg,tagg)
@@ -146,8 +146,8 @@ def RetrainOnAggregatedDataset(policy):
     print("Test Accuracy: ", results[1])
     
     plt.figure(1)
-    plt.plot(policy.history.history['loss'])
-    plt.plot(policy.history.history['val_loss'])
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
     plt.legend(['train', 'validation'], loc='best')
     plt.title('Loss')
     plt.yscale('log')
@@ -193,7 +193,7 @@ def checkForDeviation(states, x_OCL, t_OCL):
 # ============================================================================
 
 def calculateBeta(i):
-    beta = 0.9925**(i+75) if i>0 else 0.99
+    beta = 0.9925**(200+i) if i>0 else 0.9925
     print("Beta: {}".format(beta))
     return beta
 

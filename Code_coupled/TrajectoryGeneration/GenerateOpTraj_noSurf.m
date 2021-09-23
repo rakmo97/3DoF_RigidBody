@@ -14,7 +14,7 @@ clc
 
 %% Generation settings
 nTrajs = 500; % Number of trajectories to generate
-plotting = 1; % Plot things or no?
+plotting = 0; % Plot things or no?
 saveout = ['d',datestr(now,'yyyymmdd_HHoMM'),'_genTrajs','.mat'];
 
 % Lower and upper values for random initial conditions
@@ -52,7 +52,7 @@ for i = 1:nTrajs
             conf = struct;
             conf.g = 9.81/6; % m/s2
             conf.g0 = 9.81; % m/s2
-            conf.r = 0.5;
+            conf.r = 1;
             conf.Isp = 300;
             conf.objective = objective;
             conf.surfFunc = surfFunction;
@@ -292,7 +292,7 @@ end
 %%
 fprintf("\n\nTrajectory Generation Complete!\nSaving Variables to .mat file...\n")
 disp(['Filename: ',saveout])
-save(saveout,'surfFunctionOut','objectiveOut','Jout','stateOut','ctrlOut','runTimeOut','stateFinal');
+save(saveout,'surfFunctionOut','objectiveOut','Jout','stateOut','ctrlOut','runTimeOut','stateFinal','conf');
 fprintf("\nProgram Complete!\n")
 disp(['at ',datestr(now,'yyyymmdd_HHoMMSS')])
 
