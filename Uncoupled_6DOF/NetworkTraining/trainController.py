@@ -81,9 +81,11 @@ y = layers.Dense(3, activation='linear',kernel_initializer='normal')(y)
 
 z = layers.BatchNormalization()(x.output)
 # z = layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal')(x.output)
-z = layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal')(z)
-z = layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal')(z)
-z = layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal')(z)
+z = tfa.layers.SpectralNormalization(layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal'))(z)
+# z = tfa.layers.SpectralNormalization(layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal'))(z)
+# z = tfa.layers.SpectralNormalization(layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal'))(z)
+# z = layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal')(z)
+# z = layers.Dense(n_neuronsB, activation=activation,kernel_initializer='normal')(z)
 z = layers.Dense(3, activation='linear',kernel_initializer='normal')(z)
 
 TF = Model(inputs=x.input, outputs=[y,z])
@@ -101,8 +103,8 @@ TF.compile(optimizer=opt, loss='mean_squared_error', metrics = ["mean_squared_er
 #Fit ANN
 # TF.fit(X_train, t_train, batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
 # TF.fit(X_train, [t_train[:,0:3],t_train[:,3:6]], batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
-# TF.fit(X_train_shuffled, [t_train_shuffled[:,0:3],t_train_shuffled[:,3:6]], batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
-history = TF.fit(X_train_shuffled, [t_train_shuffled[:,0:3],t_train_shuffled[:,3:6]], batch_size=100, epochs=1, validation_split=0.05,callbacks=[es])
+history = TF.fit(X_train_shuffled, [t_train_shuffled[:,0:3],t_train_shuffled[:,3:6]], batch_size=100, epochs=10000, validation_split=0.05,callbacks=[es])
+# history = TF.fit(X_train_shuffled, [t_train_shuffled[:,0:3],t_train_shuffled[:,3:6]], batch_size=100, epochs=1, validation_split=0.05,callbacks=[es])
 
 # Evaluating model
 results = TF.evaluate(X_test,[t_test[:,0:3],t_test[:,3:6]])
