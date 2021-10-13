@@ -28,7 +28,8 @@ from matplotlib import pyplot as plt
 # filename = 'ANN2_relu_n1500.h5'
 # filename = 'ANN2_relu_n1000_nA1500_nB1500.h5'
 # filename = 'ANN2_relu_n1000_nA200_nB200.h5'
-filename = 'ANN2_relu_n1000_nA750_nB750imporimpimport tensorflow_addons as tfa.h5'
+# filename = 'ANN2_relu_n1000_nA750_nB750.h5'
+filename = 'ANN2_relu_n1000_nA750_nB750_specnorm.h5'
 # filename = '../ImitationLearning/FirstIL_ANN.h5'
 ANN2 = models.load_model(filename)
 

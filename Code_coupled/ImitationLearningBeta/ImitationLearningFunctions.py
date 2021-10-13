@@ -193,7 +193,7 @@ def checkForDeviation(states, x_OCL, t_OCL):
 # ============================================================================
 
 def calculateBeta(i):
-    beta = 0.9925**(200+i) if i>0 else 0.9925
+    beta = 0.9925**(450+i) if i>0 else 0.9925
     print("Beta: {}".format(beta))
     return beta
 
