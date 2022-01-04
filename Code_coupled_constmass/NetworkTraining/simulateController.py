@@ -25,7 +25,7 @@ from matplotlib import pyplot as plt
 # ============================================================================
 # filename = 'ANN2_703_tanh.h5'
 # filename = 'ANN2_703_relu.h5'
-filename = 'E:/Research_Data/3DoF_RigidBody/Code_coupled/ImitationLearningBeta/3DoF_DAGGER_20211128.h5'
+filename = 'E:/Research_Data/3DoF_RigidBody/Code_coupled_constmass/NetworkTraining/ANN2_703_relu_n100.h5'
 ANN2 = models.load_model(filename)
 
 
@@ -36,7 +36,7 @@ ANN2 = models.load_model(filename)
 print("Loading mat file")
 # matfile = loadmat('ANN2_data.mat')
 # matfile = loadmat('ANN2_decoupled_data.mat')
-matfile = loadmat('E:/Research_Data/3DoF_RigidBody/Code_coupled/TrajectoryGeneration/ToOrigin_Trajectories/d20210914_14o51_genTrajs.mat')
+matfile = loadmat('E:/Research_Data/3DoF_RigidBody/Code_coupled_constmass/TrajectoryGeneration/ToOrigin_Trajectories/d20211214_11o55_genTrajs.mat')
 print("Mat file loaded!")
 
 # # matfile = loadmat('ANN1_data_notaug.mat')
@@ -50,7 +50,7 @@ print("Mat file loaded!")
 # t_test = matfile['ttest2']
 # times_test = matfile['times_test']
 
-trajToRun = 7 # Indexing variable
+trajToRun = 0 # Indexing variable
 
 # idxs = range((trajToRun-1)*100,(trajToRun-1)*100 + 100)
 
@@ -66,8 +66,8 @@ trajToRun = 7 # Indexing variable
 
 
 ctrlProfile = matfile['ctrlOut'].reshape(100,2,-1)[:,:,trajToRun]
-trajFromOCL = matfile['stateOut'].reshape(100,8,-1)[:,1:8,trajToRun]
-timesOCL = matfile['stateOut'].reshape(100,8,-1)[:,0,trajToRun]
+trajFromOCL = matfile['stateOut'].reshape(100,7,-1)[:,1:7,trajToRun]
+timesOCL = matfile['stateOut'].reshape(100,7,-1)[:,0,trajToRun]
 
 
 # times = np.linspace(0,48,5000)
@@ -84,7 +84,7 @@ target = trajFromOCL[100-1,:]
 
 
 n_times   = end
-nState    =   7
+nState    =   6
 nCtrl     =   2
 
 
@@ -105,7 +105,7 @@ x[0,:] = x0
 
 
 error = target - x[0,:] # Error
-controller_input = np.append(error[0:6],x[0,6])
+controller_input = np.append(error[0:5],x[0,5])
 
 # Fi[0,:]= ANN2.predict(np.reshape(controller_input,(1,-1)))
 Fi[0,:] = ctrlProfile[0,:]
@@ -136,7 +136,7 @@ for i in range(1,end):
     x[i,:] = xsol[:,xsol.shape[1]-1]
     
     error = target - x[i,:] # Error
-    controller_input = np.append(error[0:6],x[i,6])
+    controller_input = error[0:6]
     
     Fi[i,:]= ANN2.predict(np.reshape(controller_input,(1,-1)))
     # Fi[i,:]= ctrlProfile[i,:]
@@ -153,7 +153,7 @@ print("Plotting")
 
 plt.figure(1)
 plt.plot(trajFromOCL[:,0],trajFromOCL[:,1])
-plt.plot(x[:,0],x[:,1])
+plt.plot(x[:,0],x[:,1],'--')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 plt.legend(['OpenOCL','ANN'],loc='best')
@@ -176,12 +176,6 @@ plt.plot(timesOCL,trajFromOCL[:,2])
 plt.plot(times,x[:,2],'--')
 plt.xlabel('Time [s]')
 plt.ylabel('phi [rad]')
-
-plt.subplot(224)
-plt.plot(timesOCL,trajFromOCL[:,6])
-plt.plot(times,x[:,6],'--')
-plt.xlabel('Time [s]')
-plt.ylabel('m [kg]')
 
 plt.suptitle('Trajectory',y=1.05)
 plt.tight_layout()

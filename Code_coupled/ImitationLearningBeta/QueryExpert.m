@@ -4,7 +4,8 @@ function proxyOut = QueryExpert(ICs)
 
     fid = fopen( 'ExpertTracking.txt', 'wt' );
 
-    saveout = ['QueriedTrajectories/d',datestr(now,'yyyymmdd_HHoMM'),'_genTrajs','.mat'];
+    root_folder = 'E:/Research_Data/3DoF_RigidBody/Code_coupled/';
+    saveout = [root_folder,'ImitationLearningBeta/QueriedTrajectories/d',datestr(now,'yyyymmdd_HHoMM'),'_genTrajs','.mat'];
 
     % Number of ICs to query OpenOCL for
     numICs = size(ICs,1);
@@ -78,7 +79,18 @@ function proxyOut = QueryExpert(ICs)
         % Run Solver
         initialGuess    = solver.getInitialGuess();
         [solution,times] = solver.solve(initialGuess);
+        
+        if ~strcmp(solver.solver.stats.return_status,'Solve_Succeeded')
+            
+            Jout(i,:) = [NaN(1,3)];
+            stateOut(:,:,i) = [NaN(N,8,1)];
+            ctrlOut(:,:,i) = [NaN(N,2,1)];
+            stateFinal(i,:) = [NaN(1,7)];
 
+            continue
+            
+        end
+        
         % Process solutions
         % Grab Times
         ts = times.states.value;
@@ -145,31 +157,46 @@ function proxyOut = QueryExpert(ICs)
 
     end
 
+    % Get rid of nan rows
+    nanidxs = find(isnan(Jout(:,1)));
+    Jout(nanidxs,:) = [];
+    stateOut(:,:,nanidxs) = [];
+    ctrlOut(:,:,nanidxs) = [];
+    stateFinal(nanidxs,:) = [];
+    
     fprintf(fid, "Saving Optimized Trajectories!\n");
 
     % Save files
     save(saveout,'Jout','stateOut','ctrlOut','stateFinal');
 
-
+    figure;
+    hold on
+    for i = 1:size(stateOut,3)
+       plot(stateOut(:,2,i),stateOut(:,3,i)); 
+    end
+    title(['Plots of Queried Trajectories'])
+    xlabel('X [m]')
+    ylabel('Y [m]')
+    saveas(gcf,[root_folder,'ImitationLearningBeta/QueriedTrajectoriesPlots/',saveout(end-27:end-4),'.png'])
 
     %% Aggregate Data
     fprintf(fid, "Aggregating Data!\n");
 
     
     % Setup Directory
-    directory = '../TrajectoryGeneration/ToOrigin_Trajectories';
+    directory = [root_folder,'TrajectoryGeneration/ToOrigin_Trajectories'];
     addpath(directory);
     datadir = dir(directory);
     filenames = {datadir.name};
     datafiles = filenames(3:end);
 
-    directory = '../TrajectoryGeneration/ToSurface_Trajectories';
+    directory = [root_folder,'TrajectoryGeneration/ToSurface_Trajectories'];
     addpath(directory);
     datadir = dir(directory);
     filenames = {datadir.name};
     datafiles2 = filenames(3:end);
 
-    directory = 'QueriedTrajectories';
+    directory = [root_folder,'ImitationLearningBeta/QueriedTrajectories'];
     addpath(directory);
     datadir = dir(directory);
     filenames = {datadir.name};
@@ -249,7 +276,7 @@ function proxyOut = QueryExpert(ICs)
     % Save data to .mat file
     disp('Saving data to mat file')
 
-    save('ANN2_aggregated_data.mat','Xagg','tagg','times');
+    save([root_folder,'ImitationLearningBeta/','ANN2_aggregated_data.mat'],'Xagg','tagg','times');
 
     disp('Saved')
 

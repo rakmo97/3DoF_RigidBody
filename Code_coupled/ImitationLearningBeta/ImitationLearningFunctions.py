@@ -128,7 +128,7 @@ def RetrainOnAggregatedDataset(policy):
     """Function Description"""    
     
     # Load data
-    matfile = loadmat('ANN2_aggregated_data.mat')
+    matfile = loadmat('E:/Research_Data/3DoF_RigidBody/Code_coupled/ImitationLearningBeta/ANN2_aggregated_data.mat')
     Xagg = matfile['Xagg']
     tagg = matfile['tagg']
     

@@ -23,7 +23,7 @@ from matplotlib import pyplot as plt
 
 '''Load Data'''
 print("Loading trajectory file")
-matfile = loadmat('../NetworkTraining/ANN2_data.mat')
+matfile = loadmat('E:/Research_Data/3DoF_RigidBody/Code_coupled/NetworkTraining/ANN2_data.mat')
 
 
 # matfile = loadmat('ANN1_data_notaug.mat')
@@ -49,7 +49,7 @@ print("Trajectory file loaded")
 print("Loading controller")
 
 # filename = '../NetworkTraining/ANN2_703_relu.h5'
-filename = '../NetworkTraining/ANN2_703_relu_n100.h5'
+filename = 'E:/Research_Data/3DoF_RigidBody/Code_coupled/NetworkTraining/ANN2_703_relu_n100.h5'
 policy = models.load_model(filename)
 
 print("Controller Loaded")
@@ -61,7 +61,7 @@ print("Controller Loaded")
 
 numTrajsInFile = Xfull.shape[0]/100;
 num_episodes = 100
-last_to_query = 95 # in each trajectory
+last_to_query = 98 # in each trajectory
 num_to_query = 20 # per trajectory
 num_trajs_to_query = 20
 nx = 7 # size of state
@@ -74,12 +74,14 @@ nx = 7 # size of state
 # ============================================================================
 
 # idxs = np.random.randint(0, high=numTrajsInFile, size=num_episodes)
-idxs = np.random.randint(0, high=numTrajsInFile, size=num_trajs_to_query)
+
 
 
 start_time = time.time()
 for epis in range(num_episodes):
     
+    idxs = np.random.randint(0, high=numTrajsInFile, size=num_trajs_to_query)
+
     print("Running Episode " + str(epis+1) + " of " + str(num_episodes))
     
     # idx_to_query = list(range(0,last_to_query,int(last_to_query/num_to_query)))
@@ -92,12 +94,16 @@ for epis in range(num_episodes):
         print("Running Trajectory {} of {}".format(j+1, num_trajs_to_query))
         
         '''Setup'''
-        x_OCL = Xfull[idxs[j]*100:idxs[j]*100+100,:]
-        x_OCL[:,0:nx-1] = -x_OCL[:,0:nx-1]
-        x0 = x_OCL[0,:]
+        x_OCL = Xfull[idxs[j]*100:idxs[j]*100+100,:]; print("y0 = {}".format(x_OCL[0,1]))
+        if (x_OCL[0,1] < 0):
+            x_OCL[:,0:nx-1] = -x_OCL[:,0:nx-1]; print("Negated y0 = {}".format(x_OCL[0,1]))
+        x0 = x_OCL[0,:]; print("To use y0 = {}".format(x_OCL[0,1]))
         
         u_OCL = tfull[idxs[j]*100:idxs[j]*100+100,:]
         t_OCL = times_full[idxs[j]*100:idxs[j]*100+100,:]
+        
+        
+     
             
         '''Run Policy'''
         times, ICs, Fapplied, beta = ILF.RunPolicyWithBeta(x0, x_OCL, u_OCL, t_OCL, policy, epis)
@@ -131,8 +137,25 @@ for epis in range(num_episodes):
             plt.tight_layout()
             plt.show()
     
+    
     plt.figure()
     plt.plot(episICs_to_query[:,0],episICs_to_query[:,1],'.')
+    plt.title('before deleting')
+    plt.show()
+    
+    episICs_to_query = np.delete(episICs_to_query,np.argwhere(episICs_to_query[:,1]<0),axis=0) # delete negative ICs
+    
+    # if x0[1] < 0:
+    #     x_OCL = Xfull[idxs[j-1]*100:idxs[j-1]*100+100,:]
+    #     x_OCL[:,0:nx-1] = -x_OCL[:,0:nx-1]
+    #     x0 = x_OCL[0,:]
+        
+    #     u_OCL = tfull[idxs[j-1]*100:idxs[j-1]*100+100,:]
+    #     t_OCL = times_full[idxs[j-1]*100:idxs[j-1]*100+100,:]
+    
+    plt.figure()
+    plt.plot(episICs_to_query[:,0],episICs_to_query[:,1],'.')
+    plt.title('after deleting')
     plt.show()
         
         # idx_to_remove = []
