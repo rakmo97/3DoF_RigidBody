@@ -45,7 +45,7 @@ activation = "relu"
 # activation = "tanh"
 
 # n_neurons = 750
-n_neurons = 100
+n_neurons = 150
 
 
 # Define ANN Architecture
@@ -53,7 +53,7 @@ TF = Sequential()
 TF.add(layers.BatchNormalization())
 TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal',input_dim=6))
 TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
-# TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
+TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))
 # TF.add(layers.Dense(n_neurons, activation=activation,kernel_initializer='normal'))

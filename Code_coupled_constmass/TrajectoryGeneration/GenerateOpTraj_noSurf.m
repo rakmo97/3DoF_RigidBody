@@ -13,8 +13,8 @@ clc
 
 
 %% Generation settings
-nTrajs = 1; % Number of trajectories to generate
-plotting = 1; % Plot things or no?
+nTrajs = 500; % Number of trajectories to generate
+plotting = 0; % Plot things or no?
 saveout = ['d',datestr(now,'yyyymmdd_HHoMM'),'_genTrajs','.mat'];
 
 % Lower and upper values for random initial conditions

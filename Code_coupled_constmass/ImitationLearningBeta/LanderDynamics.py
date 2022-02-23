@@ -55,20 +55,3 @@ def LanderEOM(t,x,u):
     
     
     return xdot
-
-
-def CalculateCost(t,u):
-    
-    L = np.empty(t.shape)
-    
-    for i in range(t.shape[0]):
-        Lt = 0
-        for j in range(u.shape[1]):
-            Lt += u[i,j]**2
-    
-        L[i] = np.sqrt(Lt)
-        
-    J = integrate.trapz(L, x=t)
-    
-    return J
-    

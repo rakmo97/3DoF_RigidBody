@@ -26,7 +26,7 @@ upper = [ 1000, 1500,  1000,  0.5,  0.0,  0.5]';
 target = [0,0,0,0,0,0,0];
 
 % Preallocations
-N = 100;
+N = 10;
 surfFunctionOut = cell(nTrajs,1);
 objectiveOut = zeros(nTrajs,2);
 Jout = zeros(nTrajs,1);
@@ -80,10 +80,10 @@ for i = 1:nTrajs
 
             % Generate Initial Conditions and Target [x,y,phi,dx,dy,dphi,m]
             x0 = [0,0,0,-20,-1,0,500];
-%             r = lower+(upper-lower).*rand(6,1);
+            r = lower+(upper-lower).*rand(6,1);
 %             r = 1.0e+03*[1,1.3,0,0,0,0];
-            r = [1000,1000,1000,15,0,15]';
-
+%             r = [1000,1000,1000,-15,-15,-15]';
+              r = [630, -745, 1450, 0.5, -0.2, -0.4];
 %             r = [1000,1000,0];
             % Set Initial Conditions
             solver.setInitialBounds( 'x'   ,   r(1)   );
@@ -186,18 +186,18 @@ for i = 1:nTrajs
             if plotting
                 % Plot x,y,z trajectory
                 figure(1);
-                plot3(x(1),z(1),y(1),'rx','MarkerSize',10)
+                plot3(x(1),y(1),z(1),'rx','MarkerSize',10)
                 hold on
                 grid on
                 plot3(solution.states.x.value,...
-                   solution.states.z.value,...
                    solution.states.y.value,...
+                   solution.states.z.value,...
                    'Color','b','LineWidth',1.5);
-                plot3(xa(end),za(end),ya(end),'bo','MarkerSize',10)
+                plot3(xa(end),ya(end),za(end),'bo','MarkerSize',10)
         %         plot(objective(1),objective(2),'c+','MarkerSize',10)
         %         plot(gridPoints(:,1),gridPoints(:,2),'.')
         %         plot(linspace(-100,100),surfFunction(linspace(-100,100)))
-                xlabel('x[m]');ylabel('z[m]');; zlabel('y [m]')
+                xlabel('x[m]');ylabel('y[m]');; zlabel('z [m]')
                 legend('Starting Point','Trajectory','Ending Point','Objective','Surface','location','best')
 
 
@@ -310,8 +310,8 @@ function landervarsfun(sh, c)
 
     % Define States
     sh.addState('x');
-    sh.addState('y','lb',0);
-    sh.addState('z');
+    sh.addState('y');
+    sh.addState('z','lb',0);
     sh.addState('dx');
     sh.addState('dy');
     sh.addState('dz');
@@ -320,8 +320,8 @@ function landervarsfun(sh, c)
     Fmax = 15000;
     % Define Controls
     sh.addControl('Fx', 'lb', -Fmax, 'ub', Fmax);  % Force [N]
-    sh.addControl('Fy', 'lb', 0, 'ub', Fmax);  % Force [N]
-    sh.addControl('Fz', 'lb', -Fmax, 'ub', Fmax);  % Force [N]
+    sh.addControl('Fy', 'lb', -Fmax, 'ub', Fmax);  % Force [N]
+    sh.addControl('Fz', 'lb', 0, 'ub', Fmax);  % Force [N]
 
 
     % System Parameters
@@ -345,8 +345,8 @@ function landereqfun(sh,x,~,u,c) % https://charlestytler.com/quadcopter-equation
     sh.setODE( 'y'   , x.dy);
     sh.setODE( 'z'   , x.dz);
     sh.setODE( 'dx'  , (1/x.m)*u.Fx);
-    sh.setODE( 'dy'  , (1/x.m)*u.Fy - c.g);
-    sh.setODE( 'dz'  , (1/x.m)*u.Fz);
+    sh.setODE( 'dy'  , (1/x.m)*u.Fy);
+    sh.setODE( 'dz'  , (1/x.m)*u.Fz - c.g);
     sh.setODE( 'm'   , -sqrt((u.Fx)^2 + (u.Fy)^2 + (u.Fz)^2) / (c.Isp*c.g0));
 
 

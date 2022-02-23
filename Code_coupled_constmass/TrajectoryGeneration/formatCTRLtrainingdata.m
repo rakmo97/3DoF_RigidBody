@@ -90,7 +90,7 @@ disp(['Full dataset size: ',num2str(count-1)])
 %% Separate into training and testing data
 disp('Separating training and testing data')
 
-num2train = 45000;
+num2train = 90000;
 Xtrain2 = Xfull_2(1:num2train,:);
 ttrain2 = tfull_2(1:num2train,:);
 Xtest2 = Xfull_2(num2train+1:end,:);

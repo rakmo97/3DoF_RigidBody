@@ -2,4 +2,6 @@
 *.h5
 *.txt
 *.png
+*.pkl
 __pycache__/
+Code_coupled_constmass/ImitationLearningBeta/ICLOCS/
